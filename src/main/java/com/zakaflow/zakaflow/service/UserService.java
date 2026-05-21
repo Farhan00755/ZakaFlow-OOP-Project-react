@@ -15,7 +15,9 @@ public interface UserService {
 
     User save(User user);
 
-    User register(String username, String rawPassword, String roleName);
+    User register(String username, String email, String rawPassword, String roleName);
+
+    User registerDonatur(String username, String email, String rawPassword);
 
     void deleteById(Long id);
 }

@@ -1,9 +1,7 @@
 package com.zakaflow.zakaflow.service.impl;
 
-import com.zakaflow.zakaflow.model.Role;
 import com.zakaflow.zakaflow.model.User;
 import com.zakaflow.zakaflow.repository.UserRepository;
-import com.zakaflow.zakaflow.service.RoleService;
 import com.zakaflow.zakaflow.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +17,6 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -45,18 +42,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User register(String username, String rawPassword, String roleName) {
-        if (userRepository.existsByUsername(username)) {
+    public User register(String username, String email, String rawPassword, String roleName) {
+        if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username sudah digunakan");
         }
-        Role role = roleService.findByName(roleName)
-                .orElseThrow(() -> new IllegalArgumentException("Role tidak ditemukan: " + roleName));
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Email sudah digunakan");
+        }
 
         User user = new User();
         user.setUsername(username);
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setRole(role);
+        user.setRole(roleName != null && !roleName.isBlank() ? roleName : "DONATUR");
         return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public User registerDonatur(String username, String email, String rawPassword) {
+        return register(username, email, rawPassword, "DONATUR");
     }
 
     @Override
