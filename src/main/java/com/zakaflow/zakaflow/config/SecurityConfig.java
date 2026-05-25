@@ -19,7 +19,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/programs/**", "/categories/**", "/login", "/register", "/error", "/css/**", "/js/**", "/img/**").permitAll()
-                        .requestMatchers("/transactions/**").hasAnyRole("ADMIN", "DONATUR")
+                        .requestMatchers("/profile/programs/**").hasRole("ADMIN")
+                        .requestMatchers("/transactions/**", "/profile/**").hasAnyRole("ADMIN", "DONATUR")
                         .anyRequest().hasRole("ADMIN"))
                 .formLogin(form -> form
                         .loginPage("/login")

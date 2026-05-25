@@ -23,8 +23,12 @@ public class DonationProgramController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
-        model.addAttribute("program", donationProgramService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Program tidak ditemukan")));
+        var program = donationProgramService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Program tidak ditemukan"));
+        if (!program.isPubliclyVisible()) {
+            throw new IllegalArgumentException("Program tidak tersedia");
+        }
+        model.addAttribute("program", program);
         return "programs/detail";
     }
 }
