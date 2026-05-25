@@ -16,13 +16,23 @@
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" th:unless="${#lists.isEmpty(programs)}">
         <article th:each="p : ${programs}"
                  class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition">
+            <div th:if="${p.thumbnailPath != null}" class="h-40 bg-surface-100 overflow-hidden">
+                <img th:src="${p.thumbnailPath}" th:alt="${p.title}" class="w-full h-full object-cover"/>
+            </div>
             <div class="p-5">
-                <span class="text-xs font-medium text-primary-700 bg-primary-50 px-2 py-1 rounded"
-                      th:text="${p.category.name}">Kategori</span>
-                <h2 class="mt-2 text-lg font-semibold text-slate-900" th:text="${p.title}">Judul</h2>
-                <p class="text-sm text-slate-600 mt-2 line-clamp-3" th:text="${p.description}">Deskripsi</p>
+                <div class="flex flex-wrap gap-1 mb-2">
+                    <span class="text-xs font-medium text-primary-700 bg-primary-50 px-2 py-1 rounded"
+                          th:text="${p.fundingType != null ? p.fundingType.label : p.category.name}">Kategori</span>
+                    <span th:if="${p.specificCategory != null}"
+                          class="text-xs font-medium text-stone-600 bg-surface-100 px-2 py-1 rounded"
+                          th:text="${p.specificCategory.label}">Spesifik</span>
+                </div>
+                <h2 class="text-lg font-semibold text-slate-900" th:text="${p.title}">Judul</h2>
+                <p class="text-sm text-slate-600 mt-2 line-clamp-3"
+                   th:text="${p.excerpt != null ? p.excerpt : p.description}">Deskripsi</p>
 
-                <th:block th:with="progress=${p.targetAmount.signum() > 0 ? (p.currentAmount.doubleValue() / p.targetAmount.doubleValue() * 100) : 0}">
+                <th:block th:if="${!p.openEnded and p.targetAmount != null}"
+                          th:with="progress=${p.targetAmount.signum() > 0 ? (p.currentAmount.doubleValue() / p.targetAmount.doubleValue() * 100) : 0}">
                     <div class="mt-4">
                         <div class="flex justify-between text-sm text-slate-600 mb-1">
                             <span>Terkumpul</span>
@@ -34,6 +44,7 @@
                         </div>
                     </div>
                 </th:block>
+                <p th:if="${p.openEnded}" class="mt-4 text-sm text-primary-700 font-medium">Program tanpa batas target</p>
 
                 <a th:href="@{/programs/{id}(id=${p.id})}"
                    class="mt-4 block text-center bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium">

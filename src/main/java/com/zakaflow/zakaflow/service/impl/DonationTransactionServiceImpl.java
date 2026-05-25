@@ -59,7 +59,9 @@ public class DonationTransactionServiceImpl implements DonationTransactionServic
         transaction.setStatus(TransactionStatus.SUCCESS);
 
         program.setCurrentAmount(program.getCurrentAmount().add(amount));
-        if (program.getCurrentAmount().compareTo(program.getTargetAmount()) >= 0) {
+        if (!program.isOpenEnded()
+                && program.getTargetAmount() != null
+                && program.getCurrentAmount().compareTo(program.getTargetAmount()) >= 0) {
             program.setCompleted(true);
         }
 
