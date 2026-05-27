@@ -19,11 +19,12 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/programs/**", "/categories/**", "/login", "/register", "/error", "/css/**", "/js/**", "/img/**").permitAll()
-                        .requestMatchers("/transactions/**").hasAnyRole("ADMIN", "DONATUR")
+                        .requestMatchers("/user/**").hasRole("DONATUR")
+                        .requestMatchers("/admin/**", "/transactions/**").hasRole("ADMIN")
                         .anyRequest().hasRole("ADMIN"))
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(new RoleBasedAuthenticationSuccessHandler())
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
