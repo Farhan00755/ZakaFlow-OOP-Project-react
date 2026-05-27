@@ -1,5 +1,6 @@
 package com.zakaflow.zakaflow.controller;
 
+import com.zakaflow.zakaflow.config.ZakatProperties;
 import com.zakaflow.zakaflow.model.PaymentMethod;
 import com.zakaflow.zakaflow.service.DonationProgramService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class DonationProgramController {
 
     private final DonationProgramService donationProgramService;
+    private final ZakatProperties zakatProperties;
 
     @GetMapping
     public String list(Model model) {
@@ -27,6 +29,8 @@ public class DonationProgramController {
         model.addAttribute("program", donationProgramService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Program tidak ditemukan")));
         model.addAttribute("paymentMethods", PaymentMethod.values());
+        model.addAttribute("zakatNisabBulanan", zakatProperties.getNisabBulanan());
+        model.addAttribute("zakatTarif", zakatProperties.getTarif());
         return "programs/detail";
     }
 }
