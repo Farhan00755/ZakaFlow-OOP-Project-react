@@ -13,7 +13,7 @@ import java.io.IOException;
 public class RoleBasedAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final SimpleUrlAuthenticationSuccessHandler donaturHandler =
-            new SimpleUrlAuthenticationSuccessHandler("/user");
+            new SimpleUrlAuthenticationSuccessHandler("/");
     private final SimpleUrlAuthenticationSuccessHandler adminHandler =
             new SimpleUrlAuthenticationSuccessHandler("/admin");
 

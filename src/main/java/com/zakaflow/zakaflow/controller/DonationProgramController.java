@@ -2,6 +2,7 @@ package com.zakaflow.zakaflow.controller;
 
 import com.zakaflow.zakaflow.config.ZakatProperties;
 import com.zakaflow.zakaflow.model.PaymentMethod;
+import com.zakaflow.zakaflow.model.DonationTransaction;
 import com.zakaflow.zakaflow.service.DonationProgramService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -26,8 +27,39 @@ public class DonationProgramController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
-        model.addAttribute("program", donationProgramService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Program tidak ditemukan")));
+        var program = donationProgramService.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Program tidak ditemukan"));
+        model.addAttribute("program", program);
+        // transaction count
+        int txCount = program.getTransactions() != null ? program.getTransactions().size() : 0;
+        model.addAttribute("transactionCount", txCount);
+
+        // prepare chart data for last 6 months
+        java.time.YearMonth now = java.time.YearMonth.now();
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        java.util.List<Long> amounts = new java.util.ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            java.time.YearMonth ym = now.minusMonths(i);
+            // label like DEC 2025
+            labels.add(ym.getMonth().name().substring(0, 3) + ' ' + ym.getYear());
+            final java.time.YearMonth target = ym;
+            java.math.BigDecimal sumBd = program.getTransactions().stream()
+                .filter(t -> t.getTransactionDate() != null && java.time.YearMonth.from(t.getTransactionDate().toLocalDate()).equals(target))
+                .map(t -> t.getAmount())
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            long sum = sumBd.longValue();
+            amounts.add(sum);
+        }
+        model.addAttribute("chartLabels", labels);
+        model.addAttribute("chartAmounts", amounts);
+        long maxAmount = amounts.stream().mapToLong(Long::longValue).max().orElse(0L);
+        long chartTarget = program.getTargetAmount() != null ? program.getTargetAmount().longValue() : 0L;
+        long chartMax = Math.max(maxAmount, chartTarget);
+        // add a small headroom to y-axis
+        long headroom = (long) Math.ceil(chartMax * 0.1);
+        chartMax = chartMax + headroom;
+        model.addAttribute("chartTarget", chartTarget);
+        model.addAttribute("chartMax", chartMax);
         model.addAttribute("paymentMethods", PaymentMethod.values());
         model.addAttribute("zakatNisabBulanan", zakatProperties.getNisabBulanan());
         model.addAttribute("zakatTarif", zakatProperties.getTarif());

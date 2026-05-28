@@ -43,4 +43,7 @@ public class DonationProgram {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<DonationTransaction> transactions = new ArrayList<>();
+
+    @Column(length = 255)
+    private String imageFilename;
 }
