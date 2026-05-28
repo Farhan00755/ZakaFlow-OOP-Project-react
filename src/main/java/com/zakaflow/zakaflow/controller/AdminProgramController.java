@@ -5,12 +5,19 @@ import com.zakaflow.zakaflow.model.DonationProgram;
 import com.zakaflow.zakaflow.service.CategoryService;
 import com.zakaflow.zakaflow.service.DonationProgramService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/admin/programs")
@@ -19,6 +26,9 @@ public class AdminProgramController {
 
     private final DonationProgramService donationProgramService;
     private final CategoryService categoryService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     @GetMapping
     public String list(Model model) {
@@ -44,12 +54,13 @@ public class AdminProgramController {
         return "admin/programs/form";
     }
 
-    @PostMapping("/save")
-    public String save(
+        @PostMapping("/save")
+        public String save(
             @RequestParam(required = false) Long id,
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam BigDecimal targetAmount,
+            @RequestParam(required = false) MultipartFile image,
             @RequestParam Long categoryId,
             RedirectAttributes redirectAttributes) {
         if (title.isBlank()) {
@@ -77,6 +88,30 @@ public class AdminProgramController {
         program.setDescription(description != null ? description.trim() : "");
         program.setTargetAmount(targetAmount);
         program.setCategory(category);
+
+
+
+        // handle image upload
+        if (image != null && !image.isEmpty()) {
+            try {
+                String uploads = System.getProperty("user.dir") + "/" + (uploadDir != null ? uploadDir : "uploads") + "/programs/thumbnails";
+                Path uploadPath = Paths.get(uploads);
+                if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+                String ext = "";
+                String orig = image.getOriginalFilename();
+                if (orig != null && orig.contains(".")) {
+                    ext = orig.substring(orig.lastIndexOf('.'));
+                }
+                String filename = UUID.randomUUID().toString() + ext;
+                Path filePath = uploadPath.resolve(filename);
+                Files.copy(image.getInputStream(), filePath);
+                program.setImageFilename(filename);
+            } catch (IOException e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Gagal mengunggah gambar: " + e.getMessage());
+                return id != null ? "redirect:/admin/programs/" + id + "/edit" : "redirect:/admin/programs/new";
+            }
+        }
 
         donationProgramService.save(program);
         redirectAttributes.addFlashAttribute("successMessage", "Program berhasil disimpan.");

@@ -12,8 +12,8 @@
 
     <div th:replace="~{layout/admin :: alerts}"></div>
 
-    <form th:action="@{/admin/programs/save}" method="post"
-          class="bg-white rounded-2xl shadow-sm border border-stone-200 p-8 space-y-5">
+        <form th:action="@{/admin/programs/save}" method="post" enctype="multipart/form-data"
+            class="bg-white rounded-2xl shadow-sm border border-stone-200 p-8 space-y-5">
         <input type="hidden" name="id" th:if="${isEdit}" th:value="${program.id}"/>
 
         <div>
@@ -41,9 +41,21 @@
 
         <div>
             <label for="targetAmount" class="block text-sm font-medium text-stone-700 mb-1">Target Donasi (Rp)</label>
-            <input type="number" id="targetAmount" name="targetAmount" required min="1" step="1000"
+            <input type="number" id="targetAmount" name="targetAmount" required min="0" step="0"
                    th:value="${program.targetAmount}"
                    class="w-full px-4 py-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-primary-600 outline-none"/>
+        </div>
+
+        
+
+        <div>
+            <label for="image" class="block text-sm font-medium text-stone-700 mb-1">Gambar Program (opsional)</label>
+            <input type="file" id="image" name="image" accept="image/*"
+                   class="w-full text-sm text-stone-700"/>
+            <div th:if="${isEdit and program.imageFilename != null}" class="mt-3">
+                <p class="text-xs text-stone-500">Gambar saat ini:</p>
+                <img th:src="@{'/uploads/programs/thumbnails/' + ${program.imageFilename}}" alt="thumbnail" class="mt-2 rounded-lg w-40 h-24 object-cover"/>
+            </div>
         </div>
 
         <div th:if="${isEdit}" class="p-4 bg-stone-50 rounded-lg text-sm text-stone-600">

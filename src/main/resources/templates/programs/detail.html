@@ -12,11 +12,28 @@
     </a>
 
     <article class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        <span class="text-xs font-medium text-primary-700 bg-primary-50 px-2 py-1 rounded"
+        <div th:if="${program.imageFilename != null}" class="w-full h-64 overflow-hidden rounded-lg">
+            <img th:src="@{'/uploads/programs/thumbnails/' + ${program.imageFilename}}" alt="thumbnail" class="w-full h-64 object-cover"/>
+        </div>
+
+        <span class="text-xs font-medium text-primary-700 bg-primary-50 px-2 py-1 rounded mt-4 inline-block"
               th:text="${program.category.name}">Kategori</span>
 
-        <h1 class="text-3xl font-bold text-slate-900 mt-4" th:text="${program.title}">Judul Program</h1>
-        <p class="text-slate-600 mt-4 leading-relaxed" th:text="${program.description}">Deskripsi program</p>
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 mt-4" th:text="${program.title}">Judul Program</h1>
+                <p class="text-slate-600 mt-4 leading-relaxed" th:text="${program.description}">Deskripsi program</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-stone-500">Transaksi</div>
+                <div class="text-2xl font-bold text-stone-900" th:text="${transactionCount}">0</div>
+                
+                <div class="mt-4" sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin/programs/{id}/edit(id=${program.id})}"
+                       class="inline-block bg-primary-700 text-white px-3 py-2 rounded-lg text-sm font-medium">Edit Program</a>
+                </div>
+            </div>
+        </div>
 
         <th:block th:with="progress=${program.targetAmount.signum() > 0 ? (program.currentAmount.doubleValue() / program.targetAmount.doubleValue() * 100) : 0}">
             <div class="mt-8 p-5 bg-slate-50 rounded-xl">
@@ -34,6 +51,12 @@
                 </div>
             </div>
         </th:block>
+
+        <!-- mini statistics chart -->
+        <div class="mt-6 bg-surface-50 rounded-xl p-4">
+            <h3 class="text-sm font-semibold text-stone-900 mb-2">Grafik Donasi (6 Bulan)</h3>
+            <canvas id="programChart" height="80"></canvas>
+        </div>
 
         <div th:if="${errorMessage}"
              class="mt-6 p-4 bg-red-50 text-red-800 rounded-lg text-sm font-medium border border-red-100"
@@ -143,15 +166,16 @@
                     Masuk
                 </a>
             </div>
-            <div sec:authorize="hasRole('ADMIN')" class="text-center p-4 bg-amber-50 text-amber-800 rounded-lg text-sm border border-amber-100">
+            <!-- <div sec:authorize="hasRole('ADMIN')" class="text-center p-4 bg-amber-50 text-amber-800 rounded-lg text-sm border border-amber-100">
                 Anda login sebagai admin. Gunakan akun donatur untuk melakukan donasi.
-            </div>
+            </div> -->
         </div>
     </article>
 </main>
 
 <footer th:replace="~{layout/main :: footer}"></footer>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script th:inline="javascript">
     (function () {
         const isZakatProgram = /*[[${program.category != null and program.category.name != null and #strings.equalsIgnoreCase(program.category.name, 'Zakat')}]]*/ false;
@@ -230,6 +254,51 @@
         setSubmitEnabled(false);
         render();
     })();
+</script>
+<script th:inline="javascript">
+    const labels = /*[[${chartLabels}]]*/ [];
+    const amounts = /*[[${chartAmounts}]]*/ [];
+    const chartTarget = /*[[${chartTarget}]]*/ 0;
+    const chartMax = /*[[${chartMax}]]*/ 0;
+
+    // build target dataset (flat line)
+    const targetData = labels.map(() => chartTarget);
+
+    new Chart(document.getElementById('programChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Donasi (Rp)',
+                    data: amounts,
+                    backgroundColor: 'rgba(77, 107, 78, 0.85)',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Target (Rp)',
+                    data: targetData,
+                    type: 'line',
+                    borderColor: 'rgba(201,125,79,0.95)',
+                    backgroundColor: 'rgba(201,125,79,0.15)',
+                    tension: 0.2,
+                    pointRadius: 3,
+                    order: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: chartMax,
+                    ticks: { callback: (v) => 'Rp ' + Number(v).toLocaleString('id-ID') }
+                }
+            }
+        }
+    });
 </script>
 </body>
 </html>
