@@ -6,6 +6,7 @@ import com.zakaflow.zakaflow.service.CategoryService;
 import com.zakaflow.zakaflow.service.DonationProgramService;
 import com.zakaflow.zakaflow.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,9 @@ public class AdminProgramController {
     private final DonationProgramService donationProgramService;
     private final CategoryService categoryService;
     private final FileStorageService fileStorageService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     @GetMapping
     public String list(Model model) {
@@ -53,10 +57,11 @@ public class AdminProgramController {
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam BigDecimal targetAmount,
+            @RequestParam(required = false) MultipartFile image,
             @RequestParam Long categoryId,
-            @RequestParam(value = "image", required = false) MultipartFile image,
             @RequestParam(value = "removeImage", defaultValue = "false") boolean removeImage,
             RedirectAttributes redirectAttributes) {
+        
         if (title.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Judul program wajib diisi.");
             return id != null ? "redirect:/admin/programs/" + id + "/edit" : "redirect:/admin/programs/new";
