@@ -24,23 +24,7 @@
             <p class="text-xs font-semibold uppercase text-stone-500">Kategori</p>
             <p class="text-3xl font-bold text-accent-700 mt-2" th:text="${categoryCount}">0</p>
         </div>
-        <div class="bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl p-5 text-white shadow-md flex flex-col">
-            <p class="text-xs font-semibold uppercase text-white/70">Total Terkumpul</p>
-            <p class="text-2xl font-bold mt-2"
-               th:text="'Rp ' + ${#numbers.formatDecimal(totalCollected, 0, 'COMMA', 0, 'POINT')}">Rp 0</p>
-            <p class="text-xs text-white/60 mt-1" th:text="${transactionCount} + ' transaksi'">0 transaksi</p>
-            <form th:if="${transactionCount > 0}"
-                  th:action="@{/admin/reset-donations}" method="post"
-                  class="mt-4 js-confirm-submit"
-                  data-confirm-title="Reset Total Donasi?"
-                  data-confirm-text="Semua transaksi donasi akan dihapus dan jumlah terkumpul setiap program direset ke <strong>Rp 0</strong>. Tindakan ini <strong>tidak dapat dibatalkan</strong>."
-                  data-confirm-button="Ya, Reset">
-                <button type="submit"
-                        class="w-full text-xs font-semibold bg-red-600/90 hover:bg-red-500 text-white py-2 px-3 rounded-lg transition">
-                    Reset Total Donasi
-                </button>
-            </form>
-        </div>
+        
     </div>
 
     <div class="grid lg:grid-cols-3 gap-6 mb-8">
