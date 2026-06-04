@@ -1,11 +1,12 @@
-# Stage 1: Build aplikasi
-FROM maven:3.8.5-openjdk-17 AS build
+# Stage 1: Build aplikasi menggunakan Maven dan Java 21
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Stage 2: Jalankan aplikasi
-FROM openjdk:25-jdk-slim
-COPY --from=build target/*.jar app.jar
-ENV PORT=8080
+# Stage 2: Jalankan aplikasi dengan runtime Java 21 yang ringan
+FROM eclipse-temurin:21-jre-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
